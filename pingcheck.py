@@ -29,7 +29,60 @@ class IPAddress():
 		
 	def __repr__(self):
 		return self.__str__()
-
+		
+	# found LT GT here
+	# https://stackoverflow.com/questions/15461574/python-overloading-operators
+	
+	def __lt__(self, other):
+		if self.octets[0] <= other.octets[0]:
+			if self.octets[1] <= other.octets[1]:
+				if self.octets[2] <= other.octets[2]:
+					if self.octets[3] < other.octets[3]:
+						return True
+		return False
+		
+	def __le__(self, other):
+		if self.octets[0] <= other.octets[0]:
+			if self.octets[1] <= other.octets[1]:
+				if self.octets[2] <= other.octets[2]:
+					if self.octets[3] <= other.octets[3]:
+						return True
+		return False
+		
+	def __eq__(self, other):
+		if self.octets[0] == other.octets[0]:
+			if self.octets[1] == other.octets[1]:
+				if self.octets[2] == other.octets[2]:
+					if self.octets[3] == other.octets[3]:
+						return True
+		return False
+		
+	def __gt__(self, other):
+		if self.octets[0] >= other.octets[0]:
+			if self.octets[1] >= other.octets[1]:
+				if self.octets[2] >= other.octets[2]:
+					if self.octets[3] > other.octets[3]:
+						return True
+		return False
+	
+	def __ge__(self, other):
+		if self.octets[0] >= other.octets[0]:
+			if self.octets[1] >= other.octets[1]:
+				if self.octets[2] >= other.octets[2]:
+					if self.octets[3] >= other.octets[3]:
+						return True
+		return False
+		
+	def __ne__(self, other):
+		if self.octets[0] != other.octets[0]:
+			if self.octets[1] != other.octets[1]:
+				if self.octets[2] != other.octets[2]:
+					if self.octets[3] != other.octets[3]:
+						return True
+		return False
+	
+		
+		
 def launch(ip_address = None):
 	if ip_address:
 		print("not supported, proceeding with default")
@@ -58,8 +111,8 @@ def ip_sweep(base_ip_string, octet_flag = 1, start = 0, stop = 255):
 	@param - start	number to begin cycling IP octet from
 	@param - stop	number to limit cycling IP octect from
 	
-	example with 
-	IPAddress = 192.168.1.0
+	example if you use... 
+	base_ip_string = 192.168.1.0
 	start = 5
 	stop = 200
 	octet_flag = 5
