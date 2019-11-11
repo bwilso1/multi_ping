@@ -4,7 +4,7 @@ import subprocess
 
 
 class Invalid_IP_Address(Exception):
-	def __init__(self, message='not enough octets', octets = 0):
+	def __init__(self, message='invalid number of octets', octets = 0):
 		self.message = message
 		self.octets = octets
 		
@@ -14,16 +14,23 @@ class Invalid_IP_Address(Exception):
 	def __repr__(self):
 		return self.__str__()
 		
-class IPAddress():
+class IPAddress:
 
 	def __init__(self,ip_address_string):
 		self.octets = ip_address_string.split('.')
 		if len(self.octets) < 4:
 			raise Invalid_IP_Address(octets = len(self.octets))
-		else:
+		elif len(self.octets) > 4:
+			raise Invalid_IP_Address(octets= len(self.octets))
+		elif len(self.octets) == 4:
 			for _unused in range(0,4):
 				self.octets[_unused] = int(self.octets[_unused])
-			
+		else:
+			# should not be logically possible, but just in case
+			raise Invalid_IP_Address(message="epic fail in IPAddress constructor",octets=len(self.octets))
+		
+		self.binary = (self.octets[0] << 24) + (self.octets[1] << 16) + (self.octets[2] << 8) + self.octets[3]
+		
 	def __str__(self):
 		return "%s.%s.%s.%s" % (self.octets[0], self.octets[1], self.octets[2],self.octets[3])
 		
@@ -34,54 +41,23 @@ class IPAddress():
 	# https://stackoverflow.com/questions/15461574/python-overloading-operators
 	
 	def __lt__(self, other):
-		if self.octets[0] <= other.octets[0]:
-			if self.octets[1] <= other.octets[1]:
-				if self.octets[2] <= other.octets[2]:
-					if self.octets[3] < other.octets[3]:
-						return True
-		return False
+		return self.binary < other.binary
+
 		
 	def __le__(self, other):
-		if self.octets[0] <= other.octets[0]:
-			if self.octets[1] <= other.octets[1]:
-				if self.octets[2] <= other.octets[2]:
-					if self.octets[3] <= other.octets[3]:
-						return True
-		return False
-		
-	def __eq__(self, other):
-		if self.octets[0] == other.octets[0]:
-			if self.octets[1] == other.octets[1]:
-				if self.octets[2] == other.octets[2]:
-					if self.octets[3] == other.octets[3]:
-						return True
-		return False
+		return self.binary <= other.binary
 		
 	def __gt__(self, other):
-		if self.octets[0] >= other.octets[0]:
-			if self.octets[1] >= other.octets[1]:
-				if self.octets[2] >= other.octets[2]:
-					if self.octets[3] > other.octets[3]:
-						return True
-		return False
+		return self.binary > other.binary
 	
 	def __ge__(self, other):
-		if self.octets[0] >= other.octets[0]:
-			if self.octets[1] >= other.octets[1]:
-				if self.octets[2] >= other.octets[2]:
-					if self.octets[3] >= other.octets[3]:
-						return True
-		return False
+		return self.binary >= other.binary
+
+	def __eq__(self, other):
+		return self.binary == other.binary
 		
 	def __ne__(self, other):
-		if self.octets[0] != other.octets[0]:
-			if self.octets[1] != other.octets[1]:
-				if self.octets[2] != other.octets[2]:
-					if self.octets[3] != other.octets[3]:
-						return True
-		return False
-	
-		
+		return self.binary != other.binary
 		
 def launch(ip_address = None):
 	if ip_address:
