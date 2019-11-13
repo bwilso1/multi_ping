@@ -58,6 +58,9 @@ class IPAddress:
 		
 	def __ne__(self, other):
 		return self.binary != other.binary
+	
+	def __hash__(self):
+		return hash(str(self.binary))
 		
 def launch(ip_address = None):
 	if ip_address:
@@ -65,20 +68,18 @@ def launch(ip_address = None):
 
 	
 	print('loading cached ip list')
-	temp_ips, ip_file = ip_cache_load("ip_cache.txt")
-	pre_check_ip(temp_ips)
+	cached_ips, ip_file = ip_cache_load("ip_cache.txt")
+	pre_check_ip(cached_ips)
 	
 	print("beginning sweep\n")
-	valid_ip = ip_sweep('192.168.1.1')
+	valid_ip_list = ip_sweep('192.168.1.1')
 			
 	clear_line()
 	print("found these IP's")
-	for ip in valid_ip:
+	for ip in valid_ip_list:
 		print(ip)
-		append_ip_cache(ip_file, ip, valid_ip)
-		
-	ip_file.flush()
-	ip_file.close()
+
+	append_ip_cache(ip_file,cached_ips, valid_ip_list)
 		
 def ip_sweep(base_ip_string, octet_flag = 1, start = 0, stop = 255):
 	"""
@@ -158,11 +159,23 @@ def ip_sweep(base_ip_string, octet_flag = 1, start = 0, stop = 255):
 	return valid_ip
 						
 
-def append_ip_cache(file_obj, ip_address, ip_list):
-	# would like to sort by IP octets, but that will come later
-	# doing wrapper for now
-	file_obj.write(str(ip_address) + '\n')
+def append_ip_cache(file_obj,ip_list_a,ip_list_b):
+	merged_list = list(set(ip_list_a + ip_list_b))
+	merged_list.sort()
+	
+	for ip_address in merged_list:
+		file_obj.write(str(ip_address) + '\n')
+		
 	file_obj.flush()
+	file_obj.close()
+	
+def is_sorted(ip_list):
+	_temp_len = len(ip_list) - 1
+	for i in range(0,_temp_len):
+		if ip_list[i] > ip_list[i + 1]:
+			return False
+		
+	return True
 
 def pre_check_ip(ip_list):
 # see here

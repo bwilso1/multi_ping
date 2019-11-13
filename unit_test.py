@@ -31,10 +31,10 @@ class TestRecord:
 def build_ip_list():
 	my_list = list()
 	
-	for o1 in range(192, 194):
-		for o2 in range(168,170):
-			for o3 in range(1, 3):
-				for o4 in range(90,130):
+	for o1 in range(192, 196):
+		for o2 in range(168,175):
+			for o3 in range(1, 10):
+				for o4 in range(0,254):
 					my_list.append(IPAddress("%s.%s.%s.%s" % (o1,o2,o3,o4) ))
 					
 	return my_list
@@ -49,17 +49,25 @@ def launch():
 	print('list b done')
 	list_c = build_ip_list()
 	print('list c done')
+	list_d = build_ip_list()
+	print('list d done')
 	
 	print("begin randoms")
 	random.shuffle(list_a)
 	random.shuffle(list_b)
 	random.shuffle(list_c)
+	random.shuffle(list_d)
 	if list_a==list_b:
 		print("WARNING: A==B")
 	if list_a==list_c:
 		print("WARNING: A==C")
+	if list_a==list_d:
+		print("WARNING: A==D")
 	if list_c==list_b:
 		print("WARNING: C==B")
+	if list_c==list_d:
+		print("WARNING: C==D")
+	
 	
 	print('equivalency tests done')
 	
@@ -67,21 +75,27 @@ def launch():
 	list_a.sort()
 	list_b.sort()
 	list_c.sort()
+	list_d.sort()
 	
 	if main_list == list_a:
-		holder.passing("A ==master")
+		holder.passing("A == master")
 	else:
-		holder.fail("A !=master")
+		holder.fail("A != master")
 		
 	if main_list == list_b:
-		holder.passing("B ==master")
+		holder.passing("B == master")
 	else:
-		holder.fail("B !=master")
+		holder.fail("B != master")
 		
 	if main_list == list_c:
-		holder.passing("c ==master")
+		holder.passing("c == master")
 	else:
-		holder.fail("c !=master")
+		holder.fail("c != master")
+		
+	if main_list == list_d:
+		holder.passing("d == master")
+	else:
+		holder.fail("d != master")
 		
 		
 def launch2():
