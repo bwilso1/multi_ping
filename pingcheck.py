@@ -17,6 +17,7 @@ class Invalid_IP_Address(Exception):
 class IPAddress:
 
 	def __init__(self,ip_address_string):
+		#self.__class__.__name__ = "IPAddress"
 		self.octets = ip_address_string.split('.')
 		if len(self.octets) < 4:
 			raise Invalid_IP_Address(octets = len(self.octets))
@@ -36,6 +37,8 @@ class IPAddress:
 		
 	def __repr__(self):
 		return self.__str__()
+	
+		
 		
 	# found LT GT here
 	# https://stackoverflow.com/questions/15461574/python-overloading-operators
@@ -87,6 +90,8 @@ def ip_sweep(base_ip_string, octet_flag = 1, start = 0, stop = 255):
 	@param - octet_flag.  Bitwise flag to switch which IP octets to cycle start( 0) to stop (255)
 	@param - start	number to begin cycling IP octet from
 	@param - stop	number to limit cycling IP octect from
+	
+	@:return - List of found IP's of type <IPAddress>
 	
 	example if you use... 
 	base_ip_string = 192.168.1.0
@@ -146,7 +151,7 @@ def ip_sweep(base_ip_string, octet_flag = 1, start = 0, stop = 255):
 				for oct_4 in range (base.octets[3], stop_ip.octets[3] + 1):
 					result = ping("%s.%s.%s.%s" % (oct_1, oct_2, oct_3, oct_4) )
 					if result == 0:
-						valid_ip.append("%s.%s.%s.%s" % (oct_1, oct_2, oct_3, oct_4))
+						valid_ip.append(IPAddress("%s.%s.%s.%s" % (oct_1, oct_2, oct_3, oct_4)))
 					
 					# update screen while pinging
 					x = x + 1
@@ -184,7 +189,6 @@ def pre_check_ip(ip_list):
 	
 	print("checking for cached IP's")
 	for ip in temp:
-		ip = ip.rstrip()
 		result = ping(ip)
 		
 		if result == 0:
@@ -195,7 +199,7 @@ def pre_check_ip(ip_list):
 
 def ip_cache_load(filename):
 	'''  
-	returns a tuple of (prev IP list , file obj)
+	returns a tuple of (cached IP list , file obj)
 	'''
 	file = None
 	ip_list = []
@@ -203,14 +207,21 @@ def ip_cache_load(filename):
 		print ("%s found" % filename)
 		file = open(filename, "r")
 		for line in file:
-			ip_list.append(line)
+			line = line.strip()
+			if line is not "":
+				try:
+					ip_list.append(IPAddress(line))
+				except Invalid_IP_Address as e:
+					print(e)
+			else:
+				print("warning, empty line in %s" % filename)
 		
 		file.close()
 		
 	else:
 		print ("%s not found " % filename)
 	
-	#right now we blow away file. may change later to aggregate past IP's
+	# overwriting file, we merge both lists now
 	file = open(filename, "w+")
 		
 	
@@ -239,12 +250,19 @@ def clear_line(message = None):
 	
 
 def ping(host):
+
+	if type(host).__name__ is "str" and host.strip is "":
+		return 1
+		
+	if type(host).__name__ is "IPAddress":
+		host = str(host)
+		
 	# taken from wellspokenman
 	# https://stackoverflow.com/questions/2953462/pinging-servers-in-python#comment85724760_35625078
-	
 	#added wait time of 100 ms
 	process = subprocess.Popen(["ping", "-n", "1", "-w", "100", host], stdout=subprocess.PIPE, stderr=subprocess.PIPE) 
-	streamdata = process.communicate()[0] 
+	streamdata = process.communicate()[0]
+	#print(str(streamdata))
 	if 'unreachable' in str(streamdata): 
 		return 1
 	else:
