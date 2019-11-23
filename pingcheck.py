@@ -75,7 +75,7 @@ def launch(ip_address = None):
 	pre_check_ip(cached_ips)
 	
 	print("beginning sweep\n")
-	valid_ip_list = ip_sweep('192.168.1.1')
+	valid_ip_list = ip_sweep('192.168.1.1','192.168.1.255')
 			
 	clear_line()
 	print("found these IP's")
@@ -84,60 +84,16 @@ def launch(ip_address = None):
 
 	append_ip_cache(ip_file,cached_ips, valid_ip_list)
 		
-def ip_sweep(base_ip_string, octet_flag = 1, start = 0, stop = 255):
+def ip_sweep(start_ip_string, stop_ip_string):
 	"""
-	@param - base	model IP to start with
-	@param - octet_flag.  Bitwise flag to switch which IP octets to cycle start( 0) to stop (255)
-	@param - start	number to begin cycling IP octet from
-	@param - stop	number to limit cycling IP octect from
-	
-	@:return - List of found IP's of type <IPAddress>
-	
-	example if you use... 
-	base_ip_string = 192.168.1.0
-	start = 5
-	stop = 200
-	octet_flag = 5
-	
-	this script will ping
-	192.005.001.005 - 192.005.001.200
-	192.006.001.005 - 192.006.001.200
-	...
-	...
-	192.199.001.005 - 192.199.001.200
-	192.200.001.005 - 192.200.001.200
-	
-	(order may not be guaranteed)
-	
-	because 5 is 0101 in binary. so it flags
-	OFF._ON.OFF._ON
-	
-	where 'on' are the octets that are cycled from @param start to @param stop.
+	@:param start_ip_string	start ip address to begin scanning from
+	@:param stop_ip_string	ending ip address to stop scanning at
+
 	"""
 	
-	################ setup ###############
-	base = IPAddress(base_ip_string)
-	stop_ip = IPAddress( "%s.%s.%s.%s" % (base.octets[0], base.octets[1], base.octets[2], base.octets[3]))
-	
-	if octet_flag & 1 == 1:
-		# iterate 4th octet
-		base.octets[3] = start
-		stop_ip.octets[3] = stop
-	
-	if octet_flag & 2 == 2:
-		#iterate 3rd octet
-		base.octets[2] = start
-		stop_ip.octets[2] = stop
-	
-	if octet_flag & 4 == 4:
-		#iterate 2nd octet
-		base.octets[1] = start
-		stop_ip.octets[1] = stop
-		
-	if octet_flag & 8 == 8:
-		#iterate 1st octet
-		base.octets[0] = start
-		stop_ip.octets[0] = stop
+	'''################ setup ###############'''
+	base = IPAddress(start_ip_string)
+	stop_ip = IPAddress( stop_ip_string)
 		
 	valid_ip = list()
 	x = 0
