@@ -2,6 +2,8 @@ import os
 import sys
 import subprocess
 
+OS_PLATFORM = sys.platform
+
 
 class Invalid_IP_Address(Exception):
 	def __init__(self, message='invalid number of octets', octets = 0):
@@ -216,7 +218,10 @@ def ping(host):
 	# taken from wellspokenman
 	# https://stackoverflow.com/questions/2953462/pinging-servers-in-python#comment85724760_35625078
 	#added wait time of 100 ms
-	process = subprocess.Popen(["ping", "-n", "1", "-w", "100", host], stdout=subprocess.PIPE, stderr=subprocess.PIPE) 
+	if 'win32' in OS_PLATFORM:
+		process = subprocess.Popen(["ping", "-n", "1", "-w", "100", host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	elif 'linux in OS_PLATFORM:
+		process = subprocess.Popen(["ping", "-c", "1", "-w", "100", host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	streamdata = process.communicate()[0]
 	#print(str(streamdata))
 	if 'unreachable' in str(streamdata): 
