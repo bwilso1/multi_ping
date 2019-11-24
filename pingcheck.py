@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import argparse
 
 OS_PLATFORM = sys.platform
 
@@ -11,7 +12,10 @@ class Invalid_IP_Address(Exception):
 		self.octets = octets
 		
 	def __str__(self):
-		return "%s octets was %s" % (self.message, self.octets)
+		if self.octets is None:
+			return self.message
+		else:
+			return "%s. octets was %s" % (self.message, self.octets)
 		
 	def __repr__(self):
 		return self.__str__()
@@ -67,24 +71,28 @@ class IPAddress:
 	def __hash__(self):
 		return hash(str(self.binary))
 		
-def launch(ip_address = None):
-	if ip_address:
-		print("not supported, proceeding with default")
-
+def launch(start_ip_str, stop_ip_str, cache_file):
+	if type(start_ip_str) is not str:
+		raise Invalid_IP_Address(message = "invalid ip input 'start_ip_str'")
+	if type(stop_ip_str) is not str:
+		raise Invalid_IP_Address(message = "invalid ip input 'stop_ip_str'")
 	
 	print('loading cached ip list')
-	cached_ips, ip_file = ip_cache_load("ip_cache.txt")
+	cached_ips, ip_file = ip_cache_load(cache_file)
 	pre_check_ip(cached_ips)
 	
 	print("beginning sweep\n")
-	valid_ip_list = ip_sweep('192.168.1.1','192.168.1.255')
+	valid_ip_list = ip_sweep(start_ip_str, stop_ip_str)
 			
 	clear_line()
 	print("found these IP's")
 	for ip in valid_ip_list:
 		print(ip)
-
-	append_ip_cache(ip_file,cached_ips, valid_ip_list)
+	print("merging cache and found IP list, excluding duplicates")
+	tmp = append_ip_cache(ip_file,cached_ips, valid_ip_list)
+	print("merge done\nPrinting merged list")
+	for x in tmp:
+		print(x)
 		
 def ip_sweep(start_ip_string, stop_ip_string):
 	"""
@@ -131,6 +139,7 @@ def append_ip_cache(file_obj,ip_list_a,ip_list_b):
 		
 	file_obj.flush()
 	file_obj.close()
+	return merged_list
 	
 def is_sorted(ip_list):
 	_temp_len = len(ip_list) - 1
@@ -212,29 +221,51 @@ def ping(host):
 	if type(host).__name__ is "str" and host.strip is "":
 		return 1
 		
-	if type(host).__name__ is "IPAddress":
-		host = str(host)
+
+	host = str(host)
 		
 	# taken from wellspokenman
 	# https://stackoverflow.com/questions/2953462/pinging-servers-in-python#comment85724760_35625078
 	#added wait time of 100 ms
 	if 'win32' in OS_PLATFORM:
 		process = subprocess.Popen(["ping", "-n", "1", "-w", "100", host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	elif 'linux in OS_PLATFORM:
+	elif 'linux' in OS_PLATFORM:
 		process = subprocess.Popen(["ping", "-c", "1", "-w", "100", host], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	else:
+		print("unsupported OS, proceeding with Win32")
+		process = subprocess.Popen(["ping","-n","1","-w","100",host],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 	streamdata = process.communicate()[0]
 	#print(str(streamdata))
 	if 'unreachable' in str(streamdata): 
 		return 1
 	else:
 		return process.returncode
+		
+def HandleArguments():
+	# https://docs.python.org/3/library/argparse.html#the-add-argument-method
+	parser = argparse.ArgumentParser(description="A 'simple' python script that will ping a list of IP's and scan for new ones based on input parameters.\nSupports Linux and Windows, python 2.7 and python 3.6 with standard libraries.")
+	parser.add_argument('--cache',
+					default="ip_cache.txt",
+					metavar="filename<str>",
+					help="specify the the cache file to be used \n(default: 'ip_cache.txt')",
+					dest="cache")
+	parser.add_argument('--start',
+					default="192.168.1.0",
+					metavar='IP<str>',
+					dest='start',
+					help='start IP to begin scanning from (default: 192.168.1.0)')
+	parser.add_argument('--stop',
+					default='192.168.1.254',
+					metavar="IP<str>",
+					dest='stop',
+					help='stop IP to end scanning at (default 192.168.1.254)')
+	
+	return parser.parse_args()
 
 if __name__ == "__main__":
-	print("length of sys.argv: %s" % (len(sys.argv), ) )
-	for count, elm in enumerate(sys.argv):
-		print ("arg%s: %s" % (count, elm))
+	args = HandleArguments()
+	# print("length of sys.argv: %s" % (len(sys.argv), ) )
+	# for count, elm in enumerate(sys.argv):
+	# 	print ("arg%s: %s" % (count, elm))
+	launch(start_ip_str=args.start, stop_ip_str=args.stop,cache_file=args.cache)
 	
-	if len(sys.argv) > 1:
-		launch(sys.argv[1])
-	else:
-		launch()
